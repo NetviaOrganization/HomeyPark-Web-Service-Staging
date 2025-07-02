@@ -1,0 +1,25 @@
+# Maven build artifacts
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs y archivos temporales
+*.log
+*.tmp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración de IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Archivos de control de versiones
+.git/
+.gitignore
+
+# Otros archivos innecesarios
+*.class
