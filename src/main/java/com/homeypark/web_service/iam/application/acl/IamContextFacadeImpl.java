@@ -53,4 +53,12 @@ public class IamContextFacadeImpl implements IamContextFacade {
         var result = userQueryService.handle(getUserByIdQuery);
         return result.isPresent();
     }
+
+    @Override
+    public Boolean fetchUserVerifiedStatusByUserId(Long userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var result = userQueryService.handle(getUserByIdQuery);
+        if (result.isEmpty()) return false;
+        return result.get().isEmailVerified();
+    }
 }

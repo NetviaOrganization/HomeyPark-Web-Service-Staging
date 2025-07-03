@@ -33,4 +33,14 @@ public interface IamContextFacade {
   String fetchEmailByUserId(Long userId);
 
   Boolean checkProfileExistsByUserId(Long userId);
+
+  /**
+   * fetchUserVerifiedStatusByUserId
+   * <p>
+   *     This method is used to fetch the user's email verification status by userId.
+   * </p>
+   * @param userId the userId of the user
+   * @return true if the user's email is verified, false otherwise
+   */
+  Boolean fetchUserVerifiedStatusByUserId(Long userId);
 }

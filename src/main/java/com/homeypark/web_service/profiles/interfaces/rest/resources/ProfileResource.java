@@ -9,6 +9,7 @@ public record ProfileResource(
         String lastName,
         LocalDate birthDate,
         Long userId,
+        boolean verifiedEmail,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

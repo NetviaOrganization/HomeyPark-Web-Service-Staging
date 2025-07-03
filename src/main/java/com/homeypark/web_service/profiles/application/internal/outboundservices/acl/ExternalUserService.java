@@ -11,4 +11,8 @@ public class ExternalUserService {
         this.iamContextFacade = iamContextFacade;
     }
     public boolean checkUserExistsByUserId(Long UserId){return iamContextFacade.checkProfileExistsByUserId(UserId);}
+    
+    public boolean getUserVerifiedStatusByUserId(Long userId) {
+        return iamContextFacade.fetchUserVerifiedStatusByUserId(userId);
+    }
 }
