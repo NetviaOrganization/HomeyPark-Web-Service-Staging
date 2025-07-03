@@ -2,6 +2,7 @@ package com.homeypark.web_service.profiles.application.internal.queryservices;
 
 import com.homeypark.web_service.profiles.domain.model.aggregates.Profile;
 import com.homeypark.web_service.profiles.domain.model.queries.GetAllProfilesQuery;
+import com.homeypark.web_service.profiles.domain.model.queries.GetProfileByIdQuery;
 import com.homeypark.web_service.profiles.domain.model.queries.GetProfileByUserIdQuery;
 import com.homeypark.web_service.profiles.domain.model.valueobject.UserId;
 import com.homeypark.web_service.profiles.domain.services.ProfileQueryService;
@@ -23,6 +24,11 @@ public class ProfileQueryServiceImpl implements ProfileQueryService {
     public Optional<Profile> handle(GetProfileByUserIdQuery query)
     {
         return profileRepository.findProfileByUserId(new UserId(query.userId()));
+    }
+
+    @Override
+    public Optional<Profile> handle(GetProfileByIdQuery query) {
+        return profileRepository.findById(query.profileId());
     }
 
     @Override

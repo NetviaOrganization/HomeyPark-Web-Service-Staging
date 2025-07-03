@@ -1,6 +1,7 @@
 package com.homeypark.web_service.profiles.application.acl;
 
 import com.homeypark.web_service.profiles.domain.model.commands.CreateProfileCommand;
+import com.homeypark.web_service.profiles.domain.model.queries.GetProfileByIdQuery;
 import com.homeypark.web_service.profiles.domain.model.queries.GetProfileByUserIdQuery;
 import com.homeypark.web_service.profiles.domain.services.ProfileCommandService;
 import com.homeypark.web_service.profiles.domain.services.ProfileQueryService;
@@ -8,6 +9,7 @@ import com.homeypark.web_service.profiles.interfaces.acl.ProfileContextFacade;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 
 @Service
@@ -35,5 +37,12 @@ public class ProfileContextFacadeImpl implements ProfileContextFacade {
             return 0L; // or throw an exception based on your application's error handling strategy
         }
         return result.get().getId();
+    }
+
+    @Override
+    public Optional<Long> fetchUserIdByProfileId(Long profileId) {
+        var getProfileByIdQuery = new GetProfileByIdQuery(profileId);
+        var profile = profileQueryService.handle(getProfileByIdQuery);
+        return profile.map(p -> p.getUserId().userId());
     }
 }
