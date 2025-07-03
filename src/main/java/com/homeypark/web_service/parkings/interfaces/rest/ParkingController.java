@@ -30,10 +30,14 @@ import java.util.Optional;
 public class ParkingController {
     private final ParkingCommandService parkingCommandService;
     private final ParkingQueryService parkingQueryService;
+    private final ParkingResourceFromEntityAssembler parkingResourceFromEntityAssembler;
 
-    public ParkingController(ParkingCommandService parkingCommandService, ParkingQueryService parkingQueryService) {
+    public ParkingController(ParkingCommandService parkingCommandService, 
+                           ParkingQueryService parkingQueryService,
+                           ParkingResourceFromEntityAssembler parkingResourceFromEntityAssembler) {
         this.parkingCommandService = parkingCommandService;
         this.parkingQueryService = parkingQueryService;
+        this.parkingResourceFromEntityAssembler = parkingResourceFromEntityAssembler;
     }
 
     @GetMapping
@@ -42,7 +46,7 @@ public class ParkingController {
         var parkingList = parkingQueryService.handle(getAllParkingQuery);
 
         var resources = parkingList.stream()
-                .map(ParkingResourceFromEntityAssembler::toResourceFromEntity)
+                .map(parkingResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
 
         return new ResponseEntity<>(resources, HttpStatus.OK);
@@ -53,7 +57,7 @@ public class ParkingController {
         var createParkingCommand = CreateParkingCommandFromResourceAssembler.toCommandFromResource(createParkingResource);
         var parking = parkingCommandService.handle(createParkingCommand);
 
-        return parking.map(p -> new ResponseEntity<>(ParkingResourceFromEntityAssembler.toResourceFromEntity(p), HttpStatus.CREATED))
+        return parking.map(p -> new ResponseEntity<>(parkingResourceFromEntityAssembler.toResourceFromEntity(p), HttpStatus.CREATED))
                 .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
@@ -62,7 +66,7 @@ public class ParkingController {
         var updateParkingCommand = UpdateParkingCommandFromResourceAssembler.toCommandFromResource(id, updateParkingResource);
         var updatedParking = parkingCommandService.handle(updateParkingCommand);
 
-        return updatedParking.map(p -> new ResponseEntity<>(ParkingResourceFromEntityAssembler.toResourceFromEntity(p), HttpStatus.OK))
+        return updatedParking.map(p -> new ResponseEntity<>(parkingResourceFromEntityAssembler.toResourceFromEntity(p), HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
@@ -78,7 +82,7 @@ public class ParkingController {
         GetParkingByIdQuery query = new GetParkingByIdQuery(id);
         Optional<Parking> parking = parkingQueryService.handle(query);
 
-        return parking.map(p -> ResponseEntity.ok(ParkingResourceFromEntityAssembler.toResourceFromEntity(p)))
+        return parking.map(p -> ResponseEntity.ok(parkingResourceFromEntityAssembler.toResourceFromEntity(p)))
                 .orElse(ResponseEntity.badRequest().build());
     }
 
@@ -89,7 +93,7 @@ public class ParkingController {
         List<Parking> parkingList = parkingQueryService.handle(query);
 
         var resources = parkingList.stream()
-                .map(ParkingResourceFromEntityAssembler::toResourceFromEntity)
+                .map(parkingResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
 
         return ResponseEntity.ok(resources);
@@ -101,7 +105,7 @@ public class ParkingController {
         List<Parking> parkingList = parkingQueryService.handle(getParkingsByNearLatLngQuery);
 
         var resources = parkingList.stream()
-                .map(ParkingResourceFromEntityAssembler::toResourceFromEntity)
+                .map(parkingResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
 
         return new ResponseEntity<>(resources, HttpStatus.OK);
