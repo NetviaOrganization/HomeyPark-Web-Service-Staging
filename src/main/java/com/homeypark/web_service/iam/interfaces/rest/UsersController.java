@@ -2,17 +2,18 @@ package com.homeypark.web_service.iam.interfaces.rest;
 
 import com.homeypark.web_service.iam.domain.model.queries.GetAllUsersQuery;
 import com.homeypark.web_service.iam.domain.model.queries.GetUserByIdQuery;
+import com.homeypark.web_service.iam.domain.services.UserCommandService;
 import com.homeypark.web_service.iam.domain.services.UserQueryService;
 import com.homeypark.web_service.iam.interfaces.rest.resources.UserResource;
+import com.homeypark.web_service.iam.interfaces.rest.resources.VerifyEmailResource;
 import com.homeypark.web_service.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
+import com.homeypark.web_service.iam.interfaces.rest.transform.VerifyEmailCommandFromResourceAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * It includes the following operations:
  * - GET /api/v1/users: returns all the users
  * - GET /api/v1/users/{userId}: returns the user with the given id
+ * - PUT /api/v1/users/verify-email: verifies a user's email address
  **/
 @RestController
 @RequestMapping(value = "/api/v1/users", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -28,9 +30,11 @@ import java.util.List;
 public class UsersController {
 
   private final UserQueryService userQueryService;
+  private final UserCommandService userCommandService;
 
-  public UsersController(UserQueryService userQueryService) {
+  public UsersController(UserQueryService userQueryService, UserCommandService userCommandService) {
     this.userQueryService = userQueryService;
+    this.userCommandService = userCommandService;
   }
 
   /**
@@ -62,6 +66,26 @@ public class UsersController {
   public ResponseEntity<UserResource> getUserById(@PathVariable Long userId) {
     var getUserByIdQuery = new GetUserByIdQuery(userId);
     var user = userQueryService.handle(getUserByIdQuery);
+    if (user.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    var userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user.get());
+    return ResponseEntity.ok(userResource);
+  }
+
+  /**
+   * This method verifies a user's email address.
+   *
+   * @param verifyEmailResource the verify email request body.
+   * @return the updated user resource with verified email
+   * @see UserResource
+   * @see VerifyEmailResource
+   */
+  @PutMapping(value = "/verify-email")
+  public ResponseEntity<UserResource> verifyEmail(@Valid @RequestBody VerifyEmailResource verifyEmailResource) {
+    var verifyEmailCommand = VerifyEmailCommandFromResourceAssembler
+        .toCommandFromResource(verifyEmailResource);
+    var user = userCommandService.handle(verifyEmailCommand);
     if (user.isEmpty()) {
       return ResponseEntity.notFound().build();
     }

@@ -40,13 +40,18 @@ public class User extends AuditableAbstractAggregateRoot<User> {
           inverseJoinColumns = @JoinColumn(name = "role_id"))
   private Set<Role> roles;
 
+  @Column(name = "verified_email")
+  private boolean verifiedEmail;
+
   public User() {
     this.roles = new HashSet<>();
+    this.verifiedEmail = false;
   }
   public User(String email, String password) {
     this.email = email;
     this.password = password;
     this.roles = new HashSet<>();
+    this.verifiedEmail = false;
   }
 
   public User(String email, String password, List<Role> roles) {
@@ -72,5 +77,20 @@ public class User extends AuditableAbstractAggregateRoot<User> {
   public void addRoles(List<Role> roles) {
     var validatedRoleSet = Role.validateRoleSet(roles);
     this.roles.addAll(validatedRoleSet);
+  }
+
+  /**
+   * Verify the user's email
+   */
+  public void verifyEmail() {
+    this.verifiedEmail = true;
+  }
+
+  /**
+   * Check if the user's email is verified
+   * @return true if email is verified, false otherwise
+   */
+  public boolean isEmailVerified() {
+    return this.verifiedEmail;
   }
 }

@@ -6,6 +6,7 @@ import com.homeypark.web_service.iam.application.internal.outboundservices.token
 import com.homeypark.web_service.iam.domain.model.aggregates.User;
 import com.homeypark.web_service.iam.domain.model.commands.SignInCommand;
 import com.homeypark.web_service.iam.domain.model.commands.SignUpCommand;
+import com.homeypark.web_service.iam.domain.model.commands.VerifyEmailCommand;
 import com.homeypark.web_service.iam.domain.model.exceptions.EmailAlreadyExistsException;
 import com.homeypark.web_service.iam.domain.model.exceptions.InvalidCredentialsException;
 import com.homeypark.web_service.iam.domain.model.exceptions.RoleNotFoundException;
@@ -96,5 +97,26 @@ public class UserCommandServiceImpl implements UserCommandService {
     var savedUser = userRepository.save(user);
     externalProfileService.createProfile(savedUser.getId(), command.firstName(), command.lastName(), command.birthDate());
     return userRepository.findByEmail(command.email());
+  }
+
+  /**
+   * Handle the verify email command
+   * <p>
+   *     This method handles the {@link VerifyEmailCommand} command and returns the updated user.
+   * </p>
+   * @param command the verify email command containing the user ID
+   * @return the updated user with verified email
+   */
+  @Transactional
+  @Override
+  public Optional<User> handle(VerifyEmailCommand command) {
+    var user = userRepository.findById(command.userId());
+    if (user.isEmpty())
+      throw new UserNotFoundException();
+    
+    var existingUser = user.get();
+    existingUser.verifyEmail();
+    var savedUser = userRepository.save(existingUser);
+    return Optional.of(savedUser);
   }
 }
