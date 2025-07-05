@@ -1,5 +1,6 @@
 package com.homeypark.web_service.reservations.application.internal.commandservices;
 
+import com.homeypark.web_service.iam.interfaces.acl.IamContextFacade;
 import com.homeypark.web_service.reservations.application.internal.outboundservices.acl.ExternalParkingService;
 import com.homeypark.web_service.reservations.application.internal.outboundservices.acl.ExternalProfileService;
 import com.homeypark.web_service.reservations.application.internal.outboundservices.acl.ExternalScheduleService;
@@ -15,6 +16,7 @@ import com.homeypark.web_service.reservations.domain.services.ReservationCommand
 import com.homeypark.web_service.reservations.infrastructure.external.ImageUploadService;
 import com.homeypark.web_service.reservations.infrastructure.external.ImgbbResponse;
 import com.homeypark.web_service.reservations.infrastructure.persistence.jpa.repositories.ReservationRepository;
+import com.homeypark.web_service.reservations.interfaces.acl.ReservationContextFacade;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,8 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
     private final ExternalParkingService externalParkingService;
     private final ImageUploadService imageUploadService;
     private final ExternalScheduleService externalScheduleService;
+    private final IamContextFacade iamContextFacade;
+    private final ReservationContextFacade reservationContextFacade;
 
     @Transactional
     @Override
@@ -54,8 +58,22 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
             throw new ReservationOverlapException();
         }
 
+        // Check if user has discount and apply it to the total fare
+        Double finalTotalFare = command.totalFare();
+        try {
+            boolean hasDiscount = iamContextFacade.getUserHasDiscount(command.guestId());
+            if (hasDiscount) {
+                // Apply 10% discount
+                finalTotalFare = command.totalFare() * 0.9;
+            }
+        } catch (Exception e) {
+            // Log error but don't fail reservation creation
+            System.err.println("Failed to check user discount for user " + command.guestId() + ": " + e.getMessage());
+        }
 
         var reservation = new Reservation(command);
+        // Override the total fare with discounted amount if applicable
+        reservation.setTotalFare(finalTotalFare);
         reservation.setStatus(Status.Pending);
         try {
             ImgbbResponse imgbbResponse = imageUploadService.uploadImage(file).block();
@@ -99,10 +117,28 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         }
 
         var reservationToUpdate = result.get();
-        try{
-            var updatedReservation= reservationRepository.save(reservationToUpdate.updatedReservation(command));
+        
+        // Check if user has discount and apply it to the updated total fare
+        Double finalTotalFare = command.totalFare();
+        try {
+            Long guestId = reservationToUpdate.getGuestId().guestId();
+            boolean hasDiscount = iamContextFacade.getUserHasDiscount(guestId);
+            if (hasDiscount) {
+                // Apply 10% discount
+                finalTotalFare = command.totalFare() * 0.9;
+            }
+        } catch (Exception e) {
+            // Log error but don't fail reservation update
+            System.err.println("Failed to check user discount for reservation update: " + e.getMessage());
+        }
+        
+        try {
+            reservationToUpdate.updatedReservation(command);
+            // Override the total fare with discounted amount if applicable
+            reservationToUpdate.setTotalFare(finalTotalFare);
+            var updatedReservation = reservationRepository.save(reservationToUpdate);
             return Optional.of(updatedReservation);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new ReservationUpdateException();
         }
     }
@@ -112,11 +148,29 @@ public class ReservationCommandServiceImpl implements ReservationCommandService 
         var result = reservationRepository.findById(command.reservationId());
         if (result.isEmpty())
             throw new ReservationNotFoundException();
+        
         var statusToUpdate = result.get();
         try {
             var updatedStatus = reservationRepository.save(statusToUpdate.updatedStatus(command));
+            
+            // Check if reservation was just completed and activate discount if user reaches 10 successful reservations
+            if (command.status() == Status.Completed) {
+                Long guestId = updatedStatus.getGuestId().guestId();
+                Long successfulCount = reservationContextFacade.getSuccessfulReservationCountByUserId(guestId);
+                
+                // If user has reached 10 successful reservations, activate discount
+                if (successfulCount >= 10) {
+                    try {
+                        iamContextFacade.activateUserDiscount(guestId);
+                    } catch (Exception e) {
+                        // Log error but don't fail the reservation update
+                        System.err.println("Failed to activate discount for user " + guestId + ": " + e.getMessage());
+                    }
+                }
+            }
+            
             return Optional.of(updatedStatus);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new ReservationUpdateException();
         }
     }
