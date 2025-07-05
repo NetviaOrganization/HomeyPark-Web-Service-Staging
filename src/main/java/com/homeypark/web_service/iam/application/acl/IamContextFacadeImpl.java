@@ -1,5 +1,6 @@
 package com.homeypark.web_service.iam.application.acl;
 
+import com.homeypark.web_service.iam.domain.model.commands.ActivateDiscountCommand;
 import com.homeypark.web_service.iam.domain.model.queries.GetUserByIdQuery;
 import com.homeypark.web_service.iam.domain.model.queries.GetUserByEmailQuery;
 import com.homeypark.web_service.iam.domain.services.UserCommandService;
@@ -7,6 +8,8 @@ import com.homeypark.web_service.iam.domain.services.UserQueryService;
 import com.homeypark.web_service.iam.interfaces.acl.IamContextFacade;
 import io.jsonwebtoken.lang.Strings;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 /**
  * IamContextFacadeImpl
@@ -60,5 +63,30 @@ public class IamContextFacadeImpl implements IamContextFacade {
         var result = userQueryService.handle(getUserByIdQuery);
         if (result.isEmpty()) return false;
         return result.get().isEmailVerified();
+    }
+
+    @Override
+    public Boolean fetchUserDiscountStatusByUserId(Long userId) {
+        var getUserByIdQuery = new GetUserByIdQuery(userId);
+        var result = userQueryService.handle(getUserByIdQuery);
+        if (result.isEmpty()) return false;
+        return result.get().hasDiscount();
+    }
+
+    @Override
+    public void activateUserDiscountByUserId(Long userId) {
+        var activateDiscountCommand = new ActivateDiscountCommand(userId);
+        userCommandService.handle(activateDiscountCommand);
+    }
+
+    @Override
+    public Optional<User> activateUserDiscount(Long userId) {
+        var activateDiscountCommand = new ActivateDiscountCommand(userId);
+        return userCommandService.handle(activateDiscountCommand);
+    }
+
+    @Override
+    public Boolean getUserHasDiscount(Long userId) {
+        return fetchUserDiscountStatusByUserId(userId);
     }
 }
