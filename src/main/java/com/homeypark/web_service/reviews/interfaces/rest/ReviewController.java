@@ -31,7 +31,7 @@ import java.util.List;
  * - DELETE /api/v1/reviews/{reviewId}: deletes the review with the given id
  */
 @RestController
-@RequestMapping(value = "/api/v1/reviews", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/reviews", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Reviews", description = "Review Management Endpoints")
 public class ReviewController {
 
