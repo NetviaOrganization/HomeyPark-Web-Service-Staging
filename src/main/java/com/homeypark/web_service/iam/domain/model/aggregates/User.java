@@ -43,15 +43,20 @@ public class User extends AuditableAbstractAggregateRoot<User> {
   @Column(name = "verified_email")
   private boolean verifiedEmail;
 
+  @Column(name = "has_discount")
+  private boolean hasDiscount;
+
   public User() {
     this.roles = new HashSet<>();
     this.verifiedEmail = false;
+    this.hasDiscount = false;
   }
   public User(String email, String password) {
     this.email = email;
     this.password = password;
     this.roles = new HashSet<>();
     this.verifiedEmail = false;
+    this.hasDiscount = false;
   }
 
   public User(String email, String password, List<Role> roles) {
@@ -92,5 +97,20 @@ public class User extends AuditableAbstractAggregateRoot<User> {
    */
   public boolean isEmailVerified() {
     return this.verifiedEmail;
+  }
+
+  /**
+   * Activate discount for the user
+   */
+  public void activateDiscount() {
+    this.hasDiscount = true;
+  }
+
+  /**
+   * Check if the user has discount
+   * @return true if user has discount, false otherwise
+   */
+  public boolean hasDiscount() {
+    return this.hasDiscount;
   }
 }
