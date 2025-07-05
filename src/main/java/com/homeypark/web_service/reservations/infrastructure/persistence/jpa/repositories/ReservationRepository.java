@@ -43,4 +43,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("endTime") LocalTime endTime,
             @Param("statusList") List<Status> statusList
     );
+
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.guestId = :guestId AND r.status = :status")
+    Long countByGuestIdAndStatus(@Param("guestId") GuestId guestId, @Param("status") Status status);
 }

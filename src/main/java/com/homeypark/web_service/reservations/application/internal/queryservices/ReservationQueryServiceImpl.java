@@ -61,4 +61,10 @@ public class ReservationQueryServiceImpl implements ReservationQueryService {
         GuestId guestId = new GuestId(query.guestId());
         return reservationRepository.findByGuestId(guestId);
     }
+
+    @Override
+    public Long handle(GetSuccessfulReservationCountByUserIdQuery query) {
+        GuestId guestId = new GuestId(query.userId());
+        return reservationRepository.countByGuestIdAndStatus(guestId, Status.Completed);
+    }
 }

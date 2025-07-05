@@ -14,4 +14,5 @@ public interface ReservationQueryService {
     List<Reservation> handle(GetUpComingReservationQuery query);
     List<Reservation> handle(GetReservationsByHostIdQuery query);
     List<Reservation> handle(GetReservationsByGuestIdQuery query);
+    Long handle(GetSuccessfulReservationCountByUserIdQuery query);
 }
