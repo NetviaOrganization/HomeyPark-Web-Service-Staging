@@ -7,6 +7,7 @@ import com.homeypark.web_service.iam.domain.model.aggregates.User;
 import com.homeypark.web_service.iam.domain.model.commands.SignInCommand;
 import com.homeypark.web_service.iam.domain.model.commands.SignUpCommand;
 import com.homeypark.web_service.iam.domain.model.commands.VerifyEmailCommand;
+import com.homeypark.web_service.iam.domain.model.commands.ActivateDiscountCommand;
 import com.homeypark.web_service.iam.domain.model.exceptions.EmailAlreadyExistsException;
 import com.homeypark.web_service.iam.domain.model.exceptions.InvalidCredentialsException;
 import com.homeypark.web_service.iam.domain.model.exceptions.RoleNotFoundException;
@@ -116,6 +117,27 @@ public class UserCommandServiceImpl implements UserCommandService {
     
     var existingUser = user.get();
     existingUser.verifyEmail();
+    var savedUser = userRepository.save(existingUser);
+    return Optional.of(savedUser);
+  }
+
+  /**
+   * Handle the activate discount command
+   * <p>
+   *     This method handles the {@link ActivateDiscountCommand} command and returns the updated user.
+   * </p>
+   * @param command the activate discount command containing the user ID
+   * @return the updated user with discount activated
+   */
+  @Transactional
+  @Override
+  public Optional<User> handle(ActivateDiscountCommand command) {
+    var user = userRepository.findById(command.userId());
+    if (user.isEmpty())
+      throw new UserNotFoundException();
+    
+    var existingUser = user.get();
+    existingUser.activateDiscount();
     var savedUser = userRepository.save(existingUser);
     return Optional.of(savedUser);
   }
