@@ -1,5 +1,6 @@
 package com.homeypark.web_service.iam.application.acl;
 
+import com.homeypark.web_service.iam.domain.model.aggregates.User;
 import com.homeypark.web_service.iam.domain.model.commands.ActivateDiscountCommand;
 import com.homeypark.web_service.iam.domain.model.queries.GetUserByIdQuery;
 import com.homeypark.web_service.iam.domain.model.queries.GetUserByEmailQuery;
