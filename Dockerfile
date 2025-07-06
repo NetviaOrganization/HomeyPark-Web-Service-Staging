@@ -15,7 +15,7 @@ RUN chmod +x mvnw && ./mvnw dependency:go-offline
 COPY src ./src
 
 # Compila el proyecto
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -Dmaven.test.skip=true
 
 # Expone el puerto 8080 (usado por Spring Boot)
 EXPOSE 8080
